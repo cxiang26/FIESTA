@@ -7,13 +7,53 @@
 
 #include <Eigen/Eigen>
 #include <iostream>
+
+#ifndef NO_ROS_MSGS
 #include <visualization_msgs/Marker.h>
+#include <sensor_msgs/PointCloud.h>
+#else
+// Minimal stub message types to avoid ROS dependency in standalone builds
+#include <vector>
+namespace std_msgs {
+struct ColorRGBA {
+  float r{1.f}, g{1.f}, b{1.f}, a{1.f};
+};
+}
+namespace geometry_msgs {
+struct Point {
+  double x{0}, y{0}, z{0};
+};
+struct Point32 {
+  float x{0}, y{0}, z{0};
+};
+}
+namespace visualization_msgs {
+struct Marker {
+  struct Header { std::string frame_id; } header;
+  int id{0};
+  int type{0};
+  int action{0};
+  struct Scale { double x{1}, y{1}, z{1}; } scale;
+  struct Orientation { double x{0}, y{0}, z{0}, w{1}; } orientation; // for compatibility
+  struct Pose { struct Orientation orientation; } pose;
+  std::vector<geometry_msgs::Point> points;
+  std::vector<std_msgs::ColorRGBA> colors;
+};
+}
+namespace sensor_msgs {
+struct PointCloud {
+  std::vector<geometry_msgs::Point32> points;
+};
+}
+#endif
+
 #include <queue>
 #include <vector>
 #include <unordered_map>
+#ifdef HAVE_PCL
 #include <pcl/kdtree/kdtree_flann.h>
+#endif
 #include <algorithm>
-#include <sensor_msgs/PointCloud.h>
 #include "parameters.h"
 
 namespace fiesta {

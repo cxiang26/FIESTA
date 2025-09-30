@@ -2,29 +2,48 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build esdf_standalone",
+      "label": "Configure (Debug)",
       "type": "shell",
-      "command": "g++",
+      "command": "/bin/bash",
       "args": [
-        "-std=c++17",
-        "-g",
-        "-O0",
-        "-I/home/xcq/projects/FIESTA/include",
-        "-I/usr/include/eigen3",
-        "/home/xcq/projects/FIESTA/src/esdf_standalone.cpp",
-        "/home/xcq/projects/FIESTA/src/ESDFMap.cpp",
-        "/home/xcq/projects/FIESTA/src/raycast.cpp",
-        "-o",
-        "/home/xcq/projects/FIESTA/build/esdf_standalone",
-        "`pkg-config --cflags --libs opencv4 2>/dev/null || pkg-config --cflags --libs opencv`"
+        "-lc",
+        "cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug"
       ],
       "options": {
-        "cwd": "/home/xcq/projects/FIESTA"
+        "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Build esdf_standalone",
+      "type": "shell",
+      "command": "/bin/bash",
+      "args": [
+        "-lc",
+        "cmake --build build --target esdf_standalone -j$(nproc)"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$gcc",
+      "dependsOn": [
+        "Configure (Debug)"
+      ],
       "group": {
         "kind": "build",
         "isDefault": true
+      }
+    },
+    {
+      "label": "Clean build",
+      "type": "shell",
+      "command": "/bin/bash",
+      "args": [
+        "-lc",
+        "rm -rf build && mkdir -p build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
       }
     }
   ]

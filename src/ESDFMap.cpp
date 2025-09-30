@@ -5,8 +5,10 @@
 #include "ESDFMap.h"
 #include <math.h>
 #include <time.h>
+#ifndef NO_ROS_MSGS
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Point32.h"
+#endif
 
 using std::cout;
 using std::endl;
@@ -544,7 +546,9 @@ double fiesta::ESDFMap::GetDistWithGradTrilinear(Eigen::Vector3d pos,
 // region VISUALIZATION
 
 void fiesta::ESDFMap::GetPointCloud(sensor_msgs::PointCloud &m, int vis_lower_bound, int vis_upper_bound) {
+#ifndef NO_ROS_MSGS
   m.header.frame_id = "world";
+#endif
   m.points.clear();
 #ifdef HASH_TABLE
   for (int i = 1; i < count; i++) {
@@ -640,10 +644,14 @@ inline std_msgs::ColorRGBA RainbowColorMap(double h) {
 
 void fiesta::ESDFMap::GetSliceMarker(visualization_msgs::Marker &m, int slice, int id,
                                      Eigen::Vector4d color, double max_dist) {
+#ifndef NO_ROS_MSGS
   m.header.frame_id = "world";
   m.id = id;
   m.type = visualization_msgs::Marker::POINTS;
   m.action = visualization_msgs::Marker::MODIFY;
+#else
+  m.id = id;
+#endif
   m.scale.x = resolution_;
   m.scale.y = resolution_;
   m.scale.z = resolution_;
@@ -907,7 +915,10 @@ bool fiesta::ESDFMap::CheckConsistency() {
 
 // only for test, check between Ground Truth calculated by k-d tree
 bool fiesta::ESDFMap::CheckWithGroundTruth() {
-#ifdef HASH_TABLE
+#ifndef HAVE_PCL
+  // Without PCL, skip ground truth check
+  return true;
+#else
   Eigen::Vector3i ma = Eigen::Vector3i(0, 0, 0), mi = Eigen::Vector3i(0, 0, 0);
   //        ESDFMap *esdf_map_ = new ESDFMap(Eigen::Vector3d(0, 0, 0), resolution, 10000000);
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
@@ -980,79 +991,6 @@ bool fiesta::ESDFMap::CheckWithGroundTruth() {
   for (int i = 0; i < 32; i++) {
     std::cout << " [ " << i * 0.1 << ", " << i * 0.1 + 0.1 << " ]\t" << a[i] << std::endl;
   }
-
-#else
-  //        ESDFMap *esdf_map_ = new ESDFMap(Eigen::Vector3d(0, 0, 0), resolution, 10000000);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    cloud->width = 0;
-    cloud->height = 1;
-    for (int x = 0; x < grid_size_(0); ++x)
-      for (int y = 0; y < grid_size_(1); ++y)
-        for (int z = 0; z < grid_size_(2); ++z)
-          if (Exist(Vox2Idx(Eigen::Vector3i(x, y, z))))
-            cloud->width++;
-    cloud->points.resize(cloud->width * cloud->height);
-    int tot = 0;
-    for (int x = 0; x < grid_size_(0); ++x)
-      for (int y = 0; y < grid_size_(1); ++y)
-        for (int z = 0; z < grid_size_(2); ++z)
-          if (Exist(Vox2Idx(Eigen::Vector3i(x, y, z)))) {
-            cloud->points[tot].x = x;
-            cloud->points[tot].y = y;
-            cloud->points[tot].z = z;
-            tot++;
-          }
-    pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
-    kdtree.setInputCloud(cloud);
-    std::vector<int> pointIdxNKNSearch(1);
-    std::vector<float> pointNKNSquaredDistance(1);
-    int cnt1 = 0, cnt2 = 0, cnt3 = 0;
-    double ems1 = 0, ems2 = 0, max1 = 0, max2 = 0;
-    int a[32];
-    std::fill(a, a + 32, 0);
-    for (int x = 0; x < grid_size_(0); ++x)
-      for (int y = 0; y < grid_size_(1); ++y)
-        for (int z = 0; z < grid_size_(2); ++z) {
-          int ii = Vox2Idx(Eigen::Vector3i(x, y, z));
-          if (distance_buffer_[ii] >= 0 && distance_buffer_[ii] < infinity_) {
-            kdtree.nearestKSearch(pcl::PointXYZ(x, y, z), 1,
-                                  pointIdxNKNSearch, pointNKNSquaredDistance);
-            double tmp = sqrt(pointNKNSquaredDistance[0]) * resolution_;
-//                if (fabs(distance_buffer_[ii] - tmp) > 1e-3) {
-//                    std::cout << vox_buffer_[ii](0) << '\t' << vox_buffer_[ii](1) << '\t' << vox_buffer_[ii](2) << '\n';
-//                    std::cout << cloud_->points[pointIdxNKNSearch[0]].x << '\t'
-//                              << cloud_->points[pointIdxNKNSearch[0]].y << '\t'
-//                              << cloud_->points[pointIdxNKNSearch[0]].z << '\n';
-//
-//                    std::cout << distance_buffer_[ii] << '\t' << tmp << '\n';
-//
-//                    return false;
-            double error = distance_buffer_[ii] - tmp;
-            if (error > 1e-3) {
-              cnt1++;
-              a[(int) (error / 0.1)]++;
-            }
-            if (error < -1e-3) {
-              cnt3++;
-            }
-            ems1 += distance_buffer_[ii] - tmp;
-            ems2 += (distance_buffer_[ii] - tmp) * (distance_buffer_[ii] - tmp);
-            cnt2++;
-            max1 = std::max(distance_buffer_[ii] - tmp, max1);
-//                }
-          }
-        }
-
-    std::cout << grid_total_size_ << std::endl;
-    std::cout << ems1 << " / " << cnt1 << " = " << ems1 / cnt1 << std::endl;
-    std::cout << ems1 << " / " << cnt2 << " = " << ems1 / cnt2 << std::endl;
-    std::cout << ems2 << " / " << cnt1 << " = " << ems2 / cnt1 << std::endl;
-    std::cout << ems2 << " / " << cnt2 << " = " << ems2 / cnt2 << std::endl;
-    std::cout << "max = " << max1 << "\tcnt3 = " << cnt3 << std::endl;
-    for (int i = 0; i < 32; i++) {
-      std::cout << " [ " << i * 0.1 << ", " << i * 0.1 + 0.1 << " ]\t" << a[i] << std::endl;
-    }
-
 #endif
   return true;
 }
