@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(gdb) Launch ESDF",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/home/xcq/projects/FIESTA/build/esdf_standalone",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "/home/xcq/projects/FIESTA",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build esdf_standalone"
+    }
+  ]
+} 

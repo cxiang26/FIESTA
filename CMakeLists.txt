@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(fiesta)
 
+# Set default build type to Debug if not specified
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
+# Use modern C++
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(catkin REQUIRED COMPONENTS
         roscpp
         std_msgs
@@ -33,8 +42,11 @@ include_directories(
 
 link_directories(${PCL_LIBRARY_DIRS})
 
-set(CMAKE_CXX_FLAGS "-std=c++17 ${CMAKE_CXX_FLAGS} -O3 -Wall -pthread") # -Wextra -Werror
-set(CMAKE_BUILD_TYPE "RELEASE")
+# Compiler flags per configuration
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0 -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG")
+
 #add_executable(test_esdf_map
 #        include/ESDFMap.h
 #        src/ESDFMap.cpp
@@ -66,6 +78,25 @@ add_executable(test_fiesta
         test/test_fiesta.cpp
         )
 target_link_libraries(test_fiesta
+        ${catkin_LIBRARIES}
+        ${PCL_LIBRARIES}
+        ${OpenCV_LIBS}
+        )
+
+# Standalone ESDF demo with debug symbols
+add_executable(esdf_standalone
+        include/parameters.h
+        src/parameters.cpp
+        include/timing.h
+        src/timing.cc
+        include/raycast.h
+        src/raycast.cpp
+        include/ESDFMap.h
+        src/ESDFMap.cpp
+        src/esdf_standalone.cpp
+        )
+
+target_link_libraries(esdf_standalone
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         ${OpenCV_LIBS}

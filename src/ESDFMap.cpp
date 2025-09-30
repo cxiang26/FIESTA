@@ -5,6 +5,8 @@
 #include "ESDFMap.h"
 #include <math.h>
 #include <time.h>
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Point32.h"
 
 using std::cout;
 using std::endl;
@@ -824,26 +826,28 @@ void fiesta::ESDFMap::SetOriginalRange() {
 }
 
 #ifndef PROBABILISTIC
-void SetAway(){
+void fiesta::ESDFMap::SetAway(){
     SetAway(min_vec_, max_vec_);
-  }
+}
 
-  void SetAway(Eigen::Vector3i left, Eigen::Vector3i right) {
-      for (int i = left(0); i <= right(0); i++)
-          for (int j = left(1); j <= right(1); j++)
-              for (int k = left(2); k <= right(2); k++)
-                  occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] |= 2;
-  }
-  void SetBack(){
-    SetBack(min_vec_, max_vec_);
-  }
-  void SetBack(Eigen::Vector3i left, Eigen::Vector3i right) {
-      for (int i = left(0); i <= right(0); i++)
-          for (int j = left(1); j <= right(1); j++)
-              for (int k = left(2); k <= right(2); k++)
-                  if (occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] >= 2)
-                      SetOccupancy(Eigen::Vector3i(i, j, k), 0);
-  }
+void fiesta::ESDFMap::SetAway(Eigen::Vector3i left, Eigen::Vector3i right) {
+  for (int i = left(0); i <= right(0); i++)
+    for (int j = left(1); j <= right(1); j++)
+      for (int k = left(2); k <= right(2); k++)
+        occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] |= 2;
+}
+
+void fiesta::ESDFMap::SetBack(){
+  SetBack(min_vec_, max_vec_);
+}
+
+void fiesta::ESDFMap::SetBack(Eigen::Vector3i left, Eigen::Vector3i right) {
+  for (int i = left(0); i <= right(0); i++)
+    for (int j = left(1); j <= right(1); j++)
+      for (int k = left(2); k <= right(2); k++)
+        if (occupancy_buffer_[Vox2Idx(Eigen::Vector3i(i, j, k))] >= 2)
+          SetOccupancy(Eigen::Vector3i(i, j, k), 0);
+}
 #endif
 
 //endregion

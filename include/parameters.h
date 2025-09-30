@@ -6,7 +6,7 @@
 #define ESDF_TOOLS_INCLUDE_PARAMETERS_H_
 #include <ros/ros.h>
 #include <Eigen/Eigen>
-#define PROBABILISTIC
+// #define PROBABILISTIC
 //#define HASH_TABLE
 #define BLOCK
 #define BITWISE

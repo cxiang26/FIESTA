@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build esdf_standalone",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-std=c++17",
+        "-g",
+        "-O0",
+        "-I/home/xcq/projects/FIESTA/include",
+        "-I/usr/include/eigen3",
+        "/home/xcq/projects/FIESTA/src/esdf_standalone.cpp",
+        "/home/xcq/projects/FIESTA/src/ESDFMap.cpp",
+        "/home/xcq/projects/FIESTA/src/raycast.cpp",
+        "-o",
+        "/home/xcq/projects/FIESTA/build/esdf_standalone",
+        "`pkg-config --cflags --libs opencv4 2>/dev/null || pkg-config --cflags --libs opencv`"
+      ],
+      "options": {
+        "cwd": "/home/xcq/projects/FIESTA"
+      },
+      "problemMatcher": ["$gcc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+} 
